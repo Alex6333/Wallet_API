@@ -1,4 +1,4 @@
---Решение. Задание 6. Куликов А.А.
+--Решение. Задание 9. Куликов А.А.
 
 /*
 Автор: Куликов А.А.
@@ -11,6 +11,10 @@ declare
   c_create constant payment.status%type := 0;
   v_current_dtime date := sysdate;
   v_payment_id payment.payment_id%type;
+  v_payment_detail t_payment_detail_array := t_payment_detail_array(t_payment_detail(1,'internal terminal')
+                                                                   ,t_payment_detail(2,'199.5.49.657')
+                                                                   ,t_payment_detail(3,'пополнение через терминал')                                                                  
+                                                                   );
 begin
   dbms_output.put_line(v_message || '. Статус: ' || c_create);
   dbms_output.put_line(to_char(v_current_dtime,'dd.mm.yyyy hh24:mi:ss'));
@@ -80,6 +84,8 @@ declare
   v_message varchar2(200 char) := 'Данные платежа добавлены или обновлены по списку id_поля/значение';
   v_current_dtime date := sysdate;
   v_payment_id payment.payment_id%type := 120;
+  v_payment_detail t_payment_detail_array := t_payment_detail_array(t_payment_detail(2,'199.6.94.888')                                                                
+                                                                   );
 begin
   if v_payment_id is null then 
     dbms_output.put_line('ID платежа не может быть пустым');
@@ -95,6 +101,7 @@ declare
   v_message varchar2(200 char) := 'Детали платежа удалены по списку id_полей';
   v_current_dtime timestamp := systimestamp;
   v_payment_id payment.payment_id%type;
+  v_delete_field_ids t_number_array := t_number_array(1, 2);
 begin
   if v_payment_id is null then 
     dbms_output.put_line('ID платежа не может быть пустым');
