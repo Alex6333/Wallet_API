@@ -9,7 +9,7 @@ create or replace package body payment_detail_api_pack is
   begin
     
     if p_payment_id is null then 
-      dbms_output.put_line(c_error_msg_empty_payment_id);
+      dbms_output.put_line(payment_api_pack.c_error_msg_empty_payment_id);
     end if; 
      
     if p_payment_detail is not empty then
@@ -17,18 +17,18 @@ create or replace package body payment_detail_api_pack is
       for i in p_payment_detail.first .. p_payment_detail.last loop
         
         if p_payment_detail(i).field_id is null then
-          dbms_output.put_line(c_error_msg_empty_field_id);
+          dbms_output.put_line(payment_api_pack.c_error_msg_empty_field_id);
         end if;
         
         if p_payment_detail(i).field_value is null then
-          dbms_output.put_line(c_error_msg_empty_field_value);
+          dbms_output.put_line(payment_api_pack.c_error_msg_empty_field_value);
         end if;
         
         dbms_output.put_line('Field_id: ' || p_payment_detail(i).field_id || '. Value: ' || p_payment_detail(i).field_value);
       end loop;
     
     else    
-      dbms_output.put_line(c_error_msg_empty_collection);  
+      dbms_output.put_line(payment_api_pack.c_error_msg_empty_collection);  
     end if;
     
     dbms_output.put_line(v_message);
@@ -63,11 +63,11 @@ create or replace package body payment_detail_api_pack is
   begin
     
     if p_payment_id is null then 
-      dbms_output.put_line(c_error_msg_empty_payment_id);
+      dbms_output.put_line(payment_api_pack.c_error_msg_empty_payment_id);
     end if;
     
     if p_delete_field_ids is null or p_delete_field_ids is empty then
-      dbms_output.put_line(c_error_msg_empty_collection);
+      dbms_output.put_line(payment_api_pack.c_error_msg_empty_collection);
     end if;
     
     dbms_output.put_line(v_message);

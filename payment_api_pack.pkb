@@ -5,11 +5,11 @@ create or replace package body payment_api_pack is
                          ,p_to_client_id client.client_id%type
                          ,p_summa payment.summa%type
                          ,p_currency_id currency.currency_id%type
+						 ,p_current_dtime timestamp
                          ,p_payment_detail t_payment_detail_array)
     return payment.payment_id%type
   is
     v_message varchar2(100 char) := 'Платеж создан';
-    v_current_dtime timestamp := systimestamp;
     v_payment_id payment.payment_id%type;                                                                 
     
   begin
@@ -34,7 +34,7 @@ create or replace package body payment_api_pack is
     end if;
   
     dbms_output.put_line(v_message || '. Статус: ' || c_create);
-    dbms_output.put_line(to_char(v_current_dtime,'dd.mm.yyyy hh24:mi:ss'));
+    dbms_output.put_line(to_char(p_current_dtime,'dd.mm.yyyy hh24:mi:ss'));
     
     insert into payment(payment_id
                        ,create_dtime
@@ -44,7 +44,7 @@ create or replace package body payment_api_pack is
                        ,to_client_id
                        ,status)
     values(payment_seq.nextval
-          ,v_current_dtime
+          ,p_current_dtime
           ,p_summa
           ,p_currency_id
           ,p_from_client_id

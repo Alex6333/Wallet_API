@@ -24,6 +24,7 @@ create or replace package payment_api_pack is
                          ,p_to_client_id client.client_id%type
                          ,p_summa payment.summa%type
                          ,p_currency_id currency.currency_id%type
+						 ,p_current_dtime timestamp
                          ,p_payment_detail t_payment_detail_array)
     return payment.payment_id%type;
   
