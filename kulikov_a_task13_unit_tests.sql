@@ -22,7 +22,7 @@ begin
                                                  ,p_to_client_id   => 2
                                                  ,p_summa          => 1000
                                                  ,p_currency_id    => 643
-                                                 ,p_current_dtime  => systimestamp
+                                                 ,p_create_dtime   => systimestamp
                                                  ,p_payment_detail => v_payment_detail);
   
   dbms_output.put_line('ID созданного платежа: ' || v_payment_id);
