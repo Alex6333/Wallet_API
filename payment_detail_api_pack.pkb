@@ -1,15 +1,15 @@
 create or replace package body payment_detail_api_pack is
 
   --Добавление/изменение данных по платежу
-  procedure insert_or_update_payment_detail (p_payment_id payment.payment_id%type
-                                                              ,p_payment_detail t_payment_detail_array)
+  procedure insert_or_update_payment_detail (p_payment_id      payment.payment_id%type
+                                            ,p_payment_detail  t_payment_detail_array)
   is
-    v_message varchar2(200 char) := 'Данные платежа добавлены или обновлены по списку id_поля/значение';
-    v_current_dtime timestamp := systimestamp;
+    v_message        varchar2(200 char) := 'Данные платежа добавлены или обновлены по списку id_поля/значение';
+    v_current_dtime  timestamp          := systimestamp;
   begin
     
     if p_payment_id is null then 
-      dbms_output.put_line(payment_api_pack.c_error_msg_empty_payment_id);
+      raise_application_error(payment_api_pack.c_error_code_invalid_unput_parameter,payment_api_pack.c_error_msg_empty_payment_id);
     end if; 
      
     if p_payment_detail is not empty then
@@ -28,7 +28,7 @@ create or replace package body payment_detail_api_pack is
       end loop;
     
     else    
-      dbms_output.put_line(payment_api_pack.c_error_msg_empty_collection);  
+      raise_application_error(payment_api_pack.c_error_code_invalid_unput_parameter,payment_api_pack.c_error_msg_empty_collection);  
     end if;
     
     dbms_output.put_line(v_message);
@@ -52,22 +52,22 @@ create or replace package body payment_detail_api_pack is
              ,n.field_value
              );
     
-  end;
+  end insert_or_update_payment_detail;
   
   --Удаление данных по деталям платежа
-  procedure delete_payment_detail (p_payment_id payment.payment_id%type
-                                                    ,p_delete_field_ids t_number_array)
+  procedure delete_payment_detail (p_payment_id         payment.payment_id%type
+                                  ,p_delete_field_ids   t_number_array)
   is
-    v_message varchar2(200 char) := 'Детали платежа удалены по списку id_полей';
-    v_current_dtime timestamp := systimestamp;
+    v_message        varchar2(200 char) := 'Детали платежа удалены по списку id_полей';
+    v_current_dtime  timestamp          := systimestamp;
   begin
     
     if p_payment_id is null then 
-      dbms_output.put_line(payment_api_pack.c_error_msg_empty_payment_id);
+      raise_application_error(payment_api_pack.c_error_code_invalid_unput_parameter,payment_api_pack.c_error_msg_empty_payment_id);
     end if;
     
     if p_delete_field_ids is null or p_delete_field_ids is empty then
-      dbms_output.put_line(payment_api_pack.c_error_msg_empty_collection);
+      raise_application_error(payment_api_pack.c_error_code_invalid_unput_parameter,payment_api_pack.c_error_msg_empty_collection);
     end if;
     
     dbms_output.put_line(v_message);
@@ -78,7 +78,6 @@ create or replace package body payment_detail_api_pack is
      where pd.payment_id = p_payment_id
        and pd.field_id in (select value(t) from table(p_delete_field_ids) t);
     
-  end;
+  end delete_payment_detail;
 
 end payment_detail_api_pack;
-/
