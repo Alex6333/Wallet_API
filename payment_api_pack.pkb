@@ -27,22 +27,28 @@ create or replace package body payment_api_pack is
     
     if 
       p_from_client_id is null then     
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_from_client_id);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_empty_from_client_id);
     elsif 
       p_to_client_id is null then
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_to_client_id);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_empty_to_client_id);
     elsif
       p_currency_id is null then
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_currency_id);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_empty_currency_id);
     elsif
       p_summa is null then
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_summa);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_empty_summa);
     elsif
       p_summa <= 0 then
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_negative_or_zero_summa);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_negative_or_zero_summa);
     elsif
       p_create_dtime is null then
-        raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_create_date);
+        raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                               ,common_pack.c_error_msg_empty_create_date);
     end if;
     
     allow_changes();
@@ -84,12 +90,16 @@ create or replace package body payment_api_pack is
     
   begin
     if p_payment_id is null then 
-      raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_payment_id);
+      raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                             ,common_pack.c_error_msg_empty_payment_id);
     end if;
     
     if p_reason is null then
-      raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_reason);
+      raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                             ,common_pack.c_error_msg_empty_reason);
     end if;
+    
+    try_lock_payment(p_payment_id); --Блокируем платеж
     
     allow_changes();
     
@@ -114,12 +124,16 @@ create or replace package body payment_api_pack is
   is
   begin
     if p_payment_id is null then 
-      raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_payment_id);
+      raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                             ,common_pack.c_error_msg_empty_payment_id);
     end if;
     
     if p_reason is null then
-      raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_reason);
+      raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                             ,common_pack.c_error_msg_empty_reason);
     end if;
+    
+    try_lock_payment(p_payment_id); --Блокируем платеж
     
     allow_changes();
        
@@ -143,8 +157,11 @@ create or replace package body payment_api_pack is
   is
   begin
     if p_payment_id is null then 
-      raise_application_error(common_pack.c_error_code_invalid_unput_parameter,common_pack.c_error_msg_empty_payment_id);
+      raise_application_error(common_pack.c_error_code_invalid_unput_parameter
+                             ,common_pack.c_error_msg_empty_payment_id);
     end if;
+    
+    try_lock_payment(p_payment_id); --Блокируем платеж
     
     allow_changes();
     
@@ -161,14 +178,45 @@ create or replace package body payment_api_pack is
       disallow_changes();
       raise;   
   end successful_finish_payment;
-  
+
+  --Блокировка платежа для изменений
+  procedure try_lock_payment(p_payment_id  payment.payment_id%type)
+  is  
+    v_payment_status  payment.status%type;
+  begin
+    --Пытаемся заблокировать платеж
+    select p.status
+      into v_payment_status
+      from payment p
+     where p.payment_id = p_payment_id
+       for update nowait;
+    
+    --Платеж уже в финальном статусе
+    if v_payment_status <> c_create
+      then
+        raise_application_error(common_pack.c_error_code_object_already_final_status
+                               ,common_pack.c_error_msg_object_already_final_status);
+     end if;
+     
+  exception
+    when no_data_found --Платеж не найден
+      then
+        raise_application_error(common_pack.c_error_code_object_not_found
+                               ,common_pack.c_error_msg_object_not_found);
+    when common_pack.e_row_locked --Платеж не удалось заблокировать
+      then
+        raise_application_error(common_pack.c_error_code_object_already_locked
+                               ,common_pack.c_error_msg_object_already_locked);
+  end try_lock_payment;  
   
   --Выполняются ли изменения через API
-  procedure is_changes_through_api is
+  procedure is_changes_through_api 
+  is
   begin
     
     if not g_is_api and not common_pack.is_manual_changes_allowed() then
-      raise_application_error(common_pack.c_error_code_manual_changes,common_pack.c_error_msg_manual_changes);
+      raise_application_error(common_pack.c_error_code_manual_changes
+                             ,common_pack.c_error_msg_manual_changes);
     end if;
     
   end is_changes_through_api;
@@ -181,7 +229,7 @@ create or replace package body payment_api_pack is
       raise_application_error(common_pack.c_error_code_delete_forbidden
                              ,common_pack.c_error_msg_delete_forbidden);
     end if;
-  end;
+  end check_payment_delete_restriction;
 
 end payment_api_pack;
 /
