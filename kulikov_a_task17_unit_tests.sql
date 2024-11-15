@@ -693,3 +693,20 @@ exception
     dbms_output.put_line('Удаление из таблицы payment_detail не через API. Исключение возбуждено успешно. Ошибка: ' || sqlerrm);
 end;
 /
+
+--Негативный unit-тест для ситуации отсутствия в таблице payment переданногоплатежа
+declare
+  v_payment_id      payment.payment_id%type  := -1;
+  v_payment_reason  payment.status_change_reason%type := 'Тестовая ошибка';
+begin
+  
+  payment_api_pack.fail_payment(v_payment_id
+                               ,v_payment_reason);
+  
+  raise_application_error(-20999, 'Unit-тест или API выполнены не верно');
+  
+exception
+  when common_pack.e_object_not_found then
+    dbms_output.put_line('Платеж не найден. Исключение возбуждено успешно. Ошибка: ' || sqlerrm);
+end;
+/

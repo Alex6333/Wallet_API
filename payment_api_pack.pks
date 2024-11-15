@@ -33,6 +33,9 @@ create or replace package payment_api_pack is
   --Успешный платеж
   procedure successful_finish_payment (p_payment_id payment.payment_id%type);
   
+  --Блокировка платежа для изменений
+  procedure try_lock_payment(p_payment_id  payment.payment_id%type);
+  
   ----Триггеры
   
   --Выполняются ли изменения через API
@@ -40,6 +43,7 @@ create or replace package payment_api_pack is
   
   --Проверка на возможность удалять платежи
   procedure check_payment_delete_restriction;
+  
   
 end payment_api_pack;
 /

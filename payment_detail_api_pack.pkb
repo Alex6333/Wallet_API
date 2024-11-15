@@ -43,6 +43,9 @@ create or replace package body payment_detail_api_pack is
                              ,common_pack.c_error_msg_empty_collection);  
     end if;
     
+    --Попытка заблокировать платеж (защита от параллельных изменений)
+    payment_api_pack.try_lock_payment(p_payment_id);
+    
     allow_changes();
     
     merge into payment_detail pd
@@ -86,6 +89,9 @@ create or replace package body payment_detail_api_pack is
       raise_application_error(common_pack.c_error_code_invalid_unput_parameter
                              ,common_pack.c_error_msg_empty_collection);
     end if;
+    
+    --Попытка заблокировать платеж (защита от параллельных изменений)
+    payment_api_pack.try_lock_payment(p_payment_id);
     
     allow_changes();
     
