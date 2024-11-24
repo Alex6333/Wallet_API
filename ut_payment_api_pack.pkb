@@ -1,17 +1,35 @@
 create or replace package body ut_payment_api_pack is
 
   procedure create_payment is
+    v_from_client_id    client.client_id%type      := 1;
+    v_to_client_id      client.client_id%type      := 2 ; 
+    v_summa             payment.summa%type         := 1000;         
+    v_currency_id       currency.currency_id%type  := 643;  
+    v_create_dtime      timestamp                  := systimestamp;  
+    v_payment_detail    t_payment_detail_array     := t_payment_detail_array(t_payment_detail(1,'internal terminal')
+                                                                            ,t_payment_detail(2,'199.8.57.867')
+                                                                            ,t_payment_detail(3,'пополнение через терминал') 
+                                                                            );
     v_payment_id        payment.payment_id%type;
     v_payment           payment%rowtype;
   begin
     --вызов тестируемой ф-ции
-    v_payment_id := ut_common_pack.create_default_payment();
+    v_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
+                                                   ,p_to_client_id   => v_to_client_id
+                                                   ,p_summa          => v_summa
+                                                   ,p_currency_id    => v_currency_id
+                                                   ,p_create_dtime   => v_create_dtime
+                                                   ,p_payment_detail => v_payment_detail);
     
     --получаем данные по платежу
     v_payment := ut_common_pack.get_payment_info(v_payment_id);
     
     --проверка правильного заполнения полей
-    if v_payment.status != payment_api_pack.c_create
+    if v_payment.summa            != v_summa
+      or v_payment.currency_id    != v_currency_id
+      or v_payment.from_client_id != v_from_client_id
+      or v_payment.to_client_id   != v_to_client_id 
+      or v_payment.status         != payment_api_pack.c_create
       or v_payment.status_change_reason is not null then
       ut_common_pack.ut_failed();      
     end if;
