@@ -25,6 +25,9 @@ create or replace package ut_common_pack is
 
   --Коды ошибок
   c_error_code_test_failed constant number(10) := -20999;
+  
+  
+  g_payment_id  payment.payment_id%type;
 
   --Генерация значения полей для сущности клиент
   function get_random_client_email        return client_data.field_value%type;
@@ -71,6 +74,13 @@ create or replace package ut_common_pack is
     
   --Возбуждение исключения о неверном тесте
   procedure ut_failed;
+
+----Вспомогательные процедуры
+  --Создание платежа
+  procedure create_default_payment;
+  
+  --Удаление платежа
+  procedure delete_default_payment;
 
 end ut_common_pack;
 /
