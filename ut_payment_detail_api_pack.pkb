@@ -58,10 +58,7 @@ create or replace package body ut_payment_detail_api_pack is
      where pd.payment_id = ut_common_pack.g_payment_id;
     
     common_pack.disable_manual_changes();
-    
-  exception
-    when others then
-      common_pack.disable_manual_changes();
+
   end direct_update_payment_detail_with_enable_manual_change;
   
 ---- Негативные тесты

@@ -189,23 +189,6 @@ create or replace package body ut_common_pack is
   begin
     g_payment_id := ut_common_pack.create_default_payment();
   end create_default_payment;
-  
-  --Удаление платежа
-  procedure delete_default_payment is
-  begin
-    common_pack.enable_manual_changes();
-        
-    delete from payment p where p.payment_id = g_payment_id;
-    
-    common_pack.disable_manual_changes();
-    
-    g_payment_id := null;
-  
-  exception
-    when others then
-      g_payment_id := null; 
-      common_pack.disable_manual_changes(); 
-  end delete_default_payment;
     
 end ut_common_pack;
 /

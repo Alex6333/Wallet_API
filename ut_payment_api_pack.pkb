@@ -111,10 +111,7 @@ create or replace package body ut_payment_api_pack is
     delete from payment p where p.payment_id = ut_common_pack.g_payment_id;
     
     common_pack.disable_manual_changes();
-    
-  exception
-    when others then
-      common_pack.disable_manual_changes();   
+  
   end delete_payment_with_direct_dml_and_enabled_manual_changes;
   
   -- Проверка функционала по глобальному разрешению. Операция изменения платежа
@@ -130,10 +127,7 @@ create or replace package body ut_payment_api_pack is
      where p.payment_id = ut_common_pack.g_payment_id;
     
     common_pack.disable_manual_changes();
-    
-  exception
-    when others then
-      common_pack.disable_manual_changes();   
+  
   end update_payment_with_direct_dml_and_enabled_manual_changes;
 
 ---- Негативные тесты

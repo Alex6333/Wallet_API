@@ -78,9 +78,6 @@ create or replace package ut_common_pack is
 ----Вспомогательные процедуры
   --Создание платежа
   procedure create_default_payment;
-  
-  --Удаление платежа
-  procedure delete_default_payment;
 
 end ut_common_pack;
 /
