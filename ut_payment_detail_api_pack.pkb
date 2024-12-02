@@ -58,7 +58,11 @@ create or replace package body ut_payment_detail_api_pack is
      where pd.payment_id = ut_common_pack.g_payment_id;
     
     common_pack.disable_manual_changes();
-
+  
+  exception
+    when others then
+      common_pack.disable_manual_changes();
+	  raise;
   end direct_update_payment_detail_with_enable_manual_change;
   
 ---- Негативные тесты
@@ -81,9 +85,6 @@ create or replace package body ut_payment_detail_api_pack is
   procedure insert_or_update_payment_detail_with_empty_payment_detail_should_fail is
     v_payment_detail t_payment_detail_array  := null;
   begin
-    
-    --setup
-    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment();
     
     payment_detail_api_pack.insert_or_update_payment_detail(p_payment_id     => ut_common_pack.g_payment_id
                                                            ,p_payment_detail => v_payment_detail);
@@ -126,7 +127,7 @@ create or replace package body ut_payment_detail_api_pack is
                               ,field_value
                               )
     values (ut_common_pack.g_payment_id,v_field_id,null);
-
+  
   end direct_insert_payment_detail_should_fail;
   
   --Проверка запрета обновления в payment_detail не через API завершается ошибкой

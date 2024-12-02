@@ -76,12 +76,12 @@ create or replace package body ut_common_pack is
   function get_random_payment_summa return payment.summa%type is
   begin
     return trunc(dbms_random.value(10000,9999999));
-  end;
+  end get_random_payment_summa;
     
   function get_random_payment_create_dtime return payment.create_dtime%type is
   begin
     return (sysdate - dbms_random.value(18 * 12, 50 * 12));
-  end;
+  end get_random_payment_create_dtime;
     
   function get_random_client_IP return payment_detail.field_value%type is
   begin
@@ -89,7 +89,32 @@ create or replace package body ut_common_pack is
            trunc(dbms_random.value(0,9)) || '.' ||
            trunc(dbms_random.value(10,99)) || '.' ||
            trunc(dbms_random.value(100,999)));
-  end;
+  end get_random_client_IP;
+  
+  function get_random_is_check_frod return payment_detail.field_value%type is
+  begin
+    return case  
+           when trunc(dbms_random.value(0,3)) = 1 then 'Y'
+           else 'N' end;
+  end get_random_is_check_frod;
+  
+  function get_random_currency_id return payment_detail.field_value%type is
+  begin
+    return case trunc(dbms_random.value(0,4))
+           when 1 then 840
+           when 2 then 978
+           else 643 end;
+  end get_random_currency_id;
+  
+  function get_random_client_software return payment_detail.field_value%type is
+  begin
+    return dbms_random.string('a', 100);
+  end get_random_client_software;
+  
+  function get_random_payment_note return payment_detail.field_value%type is
+  begin
+    return dbms_random.string('a', 100);
+  end get_random_payment_note;
   
   --Создание платежа
   function create_default_payment(p_from_client_id   client.client_id%type     := null 
@@ -121,7 +146,7 @@ create or replace package body ut_common_pack is
       v_summa := get_random_payment_summa();
     end if;
     if v_currency_id is null then
-      v_currency_id := c_payment_currency_id_rub;
+      v_currency_id := get_random_currency_id();
     end if;
     if v_create_dtime is null then
       v_create_dtime := get_random_payment_create_dtime();
@@ -129,13 +154,13 @@ create or replace package body ut_common_pack is
     if v_payment_detail is null 
        or v_payment_detail is empty then
       v_payment_detail := t_payment_detail_array(t_payment_detail(c_payment_detail_client_software_id,
-                                                                  c_payment_detail_default_client_software),
+                                                                  get_random_client_software()),
                                                  t_payment_detail(c_payment_detail_client_IP_id,
                                                                   get_random_client_IP()),
                                                  t_payment_detail(c_payment_detail_payment_note_id,
-                                                                  c_payment_detail_default_payment_note),
+                                                                  get_random_payment_note()),
                                                  t_payment_detail(c_payment_detail_payment_is_checked_frod_id,
-                                                                  c_payment_detail_default_is_checked_frod));
+                                                                  get_random_is_check_frod()));
     end if;
     
     return payment_api_pack.create_payment(p_from_client_id => v_from_client_id
@@ -146,6 +171,41 @@ create or replace package body ut_common_pack is
                                           ,p_payment_detail => v_payment_detail);
                                           
   end create_default_payment;
+  
+  --Создание платежа с параметрами
+  function create_default_payment_with_param(p_from_client_id   client.client_id%type     := create_default_client() 
+                                            ,p_to_client_id     client.client_id%type     := create_default_client()  
+                                            ,p_summa            payment.summa%type        := get_random_payment_summa() 
+                                            ,p_currency_id      currency.currency_id%type := get_random_currency_id() 
+                                            ,p_create_dtime     timestamp                 := get_random_payment_create_dtime() 
+                                            ,p_payment_detail   t_payment_detail_array    := t_payment_detail_array(t_payment_detail(c_payment_detail_client_software_id,
+                                                                                                                                     get_random_client_software()),
+                                                                                                                    t_payment_detail(c_payment_detail_client_IP_id,
+                                                                                                                                     get_random_client_IP()),
+                                                                                                                    t_payment_detail(c_payment_detail_payment_note_id,
+                                                                                                                                     get_random_payment_note()),
+                                                                                                                    t_payment_detail(c_payment_detail_payment_is_checked_frod_id,
+                                                                                                                                     get_random_is_check_frod())) 
+                                  )
+    return payment.payment_id%type is
+    
+    v_from_client_id   client.client_id%type      := p_from_client_id;
+    v_to_client_id     client.client_id%type      := p_to_client_id ; 
+    v_summa            payment.summa%type         := p_summa;         
+    v_currency_id      currency.currency_id%type  := p_currency_id;  
+    v_create_dtime     timestamp                  := p_create_dtime;  
+    v_payment_detail   t_payment_detail_array     := p_payment_detail; 
+    
+  begin
+    
+    return payment_api_pack.create_payment(p_from_client_id => v_from_client_id
+                                          ,p_to_client_id   => v_to_client_id
+                                          ,p_summa          => v_summa
+                                          ,p_currency_id    => v_currency_id
+                                          ,p_create_dtime   => v_create_dtime
+                                          ,p_payment_detail => v_payment_detail);
+                                          
+  end create_default_payment_with_param;
   
   --Получить информацию по сущности "Платеж"
   function get_payment_info(p_payment_id payment.payment_id%type)

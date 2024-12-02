@@ -58,6 +58,7 @@ create or replace package ut_payment_api_pack is
   procedure fail_payment_with_empty_payment_id_should_fail;
   
   --%test(Проверка сброса платежа с пустым параметром причины изменения статуса платежа завершается ошибкой)  
+  --%beforetest(ut_common_pack.create_default_payment) 
   --%throws(common_pack.c_error_code_invalid_input_parameter)
   procedure fail_payment_with_empty_reason_should_fail;
   
@@ -66,6 +67,7 @@ create or replace package ut_payment_api_pack is
   procedure cancel_payment_with_empty_payment_id_should_fail;
   
   --%test(Проверка отмены платежа с пустым параметром причины изменения статуса платежа завершается ошибкой)  
+  --%beforetest(ut_common_pack.create_default_payment) 
   --%throws(common_pack.c_error_code_invalid_input_parameter)
   procedure cancel_payment_with_empty_reason_should_fail;
   

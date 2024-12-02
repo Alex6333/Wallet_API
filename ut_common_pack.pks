@@ -15,11 +15,6 @@ create or replace package ut_common_pack is
   c_payment_detail_payment_note_id            constant payment_detail.field_id%type    := 3;
   c_payment_detail_payment_is_checked_frod_id constant payment_detail.field_id%type    := 4;
   
-  c_payment_currency_id_rub                   constant payment.currency_id%type        := 643;--Рубль
-  c_payment_detail_default_client_software    constant payment_detail.field_value%type := 'internal terminal';
-  c_payment_detail_default_payment_note       constant payment_detail.field_value%type := 'пополнение через терминал';
-  c_payment_detail_default_is_checked_frod    constant payment_detail.field_value%type := 'Y';
-  
   --Сообщения об ошибках
   c_error_msg_test_failed constant varchar2(100 char) := 'Unit-тест не прошел';
 
@@ -52,6 +47,10 @@ create or replace package ut_common_pack is
   function get_random_payment_summa        return payment.summa%type;
   function get_random_payment_create_dtime return payment.create_dtime%type;
   function get_random_client_IP            return payment_detail.field_value%type;
+  function get_random_is_check_frod        return payment_detail.field_value%type;
+  function get_random_currency_id          return payment_detail.field_value%type;  
+  function get_random_client_software      return payment_detail.field_value%type;  
+  function get_random_payment_note         return payment_detail.field_value%type;
   
   --Создание платежа
   function create_default_payment(p_from_client_id   client.client_id%type     := null 
@@ -63,6 +62,23 @@ create or replace package ut_common_pack is
                                   )
     return payment.payment_id%type;
   
+  --Создание платежа с параметрами
+  function create_default_payment_with_param(p_from_client_id   client.client_id%type     := create_default_client() 
+                                            ,p_to_client_id     client.client_id%type     := create_default_client()  
+                                            ,p_summa            payment.summa%type        := get_random_payment_summa() 
+                                            ,p_currency_id      currency.currency_id%type := get_random_currency_id() 
+                                            ,p_create_dtime     timestamp                 := get_random_payment_create_dtime() 
+                                            ,p_payment_detail   t_payment_detail_array    := t_payment_detail_array(t_payment_detail(c_payment_detail_client_software_id,
+                                                                                                                                     get_random_client_software()),
+                                                                                                                    t_payment_detail(c_payment_detail_client_IP_id,
+                                                                                                                                     get_random_client_IP()),
+                                                                                                                    t_payment_detail(c_payment_detail_payment_note_id,
+                                                                                                                                     get_random_payment_note()),
+                                                                                                                    t_payment_detail(c_payment_detail_payment_is_checked_frod_id,
+                                                                                                                                     get_random_is_check_frod())) 
+                                  )
+    return payment.payment_id%type;
+    
   --Получить информацию по сущности "Платеж"
   function get_payment_info(p_payment_id payment.payment_id%type)
     return payment%rowtype;

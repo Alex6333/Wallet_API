@@ -14,11 +14,11 @@ create or replace package body ut_payment_api_pack is
   begin
     --вызов тестируемой ф-ции
     ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+                                                                  ,p_to_client_id   => v_to_client_id
+                                                                  ,p_summa          => v_summa
+                                                                  ,p_currency_id    => v_currency_id
+                                                                  ,p_create_dtime   => v_create_dtime
+                                                                  ,p_payment_detail => v_payment_detail);
     
     --получаем данные по платежу
     v_payment := ut_common_pack.get_payment_info(ut_common_pack.g_payment_id);
@@ -104,179 +104,90 @@ create or replace package body ut_payment_api_pack is
   procedure delete_payment_with_direct_dml_and_enabled_manual_changes is
     
   begin
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
     
     common_pack.enable_manual_changes();
         
-    delete from payment p where p.payment_id = ut_common_pack.g_payment_id;
+    delete from payment p where p.payment_id = ut_common_pack.c_non_existing_payment_id;
     
     common_pack.disable_manual_changes();
   
+  exception
+    when others then
+      common_pack.disable_manual_changes();
+	  raise;
   end delete_payment_with_direct_dml_and_enabled_manual_changes;
   
   -- Проверка функционала по глобальному разрешению. Операция изменения платежа
   procedure update_payment_with_direct_dml_and_enabled_manual_changes is
     v_summa      payment.summa%type      := ut_common_pack.get_random_payment_summa;
   begin
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
     
     common_pack.enable_manual_changes();
     
     update payment p
        set p.summa = v_summa
-     where p.payment_id = ut_common_pack.g_payment_id;
+     where p.payment_id = ut_common_pack.c_non_existing_payment_id;
     
     common_pack.disable_manual_changes();
-  
+    
+  exception
+    when others then
+      common_pack.disable_manual_changes();
+	  raise;
   end update_payment_with_direct_dml_and_enabled_manual_changes;
 
 ---- Негативные тесты
   
   --Проверка создания платежа с пустым набором деталей платежа завершается ошибкой
   procedure create_payment_with_empty_payment_detail_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime; 
     v_payment_detail   t_payment_detail_array     := null;
   begin
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                                  ,p_to_client_id   => v_to_client_id
-                                                                  ,p_summa          => v_summa
-                                                                  ,p_currency_id    => v_currency_id
-                                                                  ,p_create_dtime   => v_create_dtime
-                                                                  ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_payment_detail => v_payment_detail);
 
   end create_payment_with_empty_payment_detail_should_fail;
   
   --Проверка создания платежа с пустым параметром валюты платежа завершается ошибкой
   procedure create_payment_with_empty_currency_id_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
     v_currency_id      currency.currency_id%type  := null;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id,
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod)); 
   begin
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_currency_id => v_currency_id);
     
   end create_payment_with_empty_currency_id_should_fail;
   
   --Проверка создания платежа с пустым параметром суммы платежа завершается ошибкой
   procedure create_payment_with_empty_summa_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := null;
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
+    v_summa            payment.summa%type         := null;                      
                                                                            
   begin
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_summa => v_summa);
 
   end create_payment_with_empty_summa_should_fail;
   
   --Проверка создания платежа с пустым параметром получателя платежа платежа завершается ошибкой
   procedure create_payment_with_empty_client_to_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := null;
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
+    v_to_client_id     client.client_id%type      := null;                       
                                                                            
   begin
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_to_client_id => v_to_client_id);
 
   end create_payment_with_empty_client_to_should_fail;
   
   --Проверка создания платежа с пустым параметром отправителя платежа платежа завершается ошибкой
   procedure create_payment_with_empty_client_from_should_fail is
     v_from_client_id   client.client_id%type      := null;
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
-                                                                           
+                                                                            
   begin
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_from_client_id => v_from_client_id);
 
   end create_payment_with_empty_client_from_should_fail;
   
   --Проверка создания платежа с отрицательной суммой завершается ошибкой
   procedure create_payment_with_negative_payment_summa_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
     v_summa            payment.summa%type         := -ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
-                                                                           
+                                                                               
   begin
 
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
+    ut_common_pack.g_payment_id := ut_common_pack.create_default_payment_with_param(p_summa => v_summa);
 
   end create_payment_with_negative_payment_summa_should_fail;
   
@@ -294,29 +205,8 @@ create or replace package body ut_payment_api_pack is
   
   --Проверка сброса платежа с пустым параметром причины изменения статуса платежа завершается ошибкой
   procedure fail_payment_with_empty_reason_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
-                                                                           
     v_reason           payment.status_change_reason%type := null;
   begin
-    
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
                                                      
     payment_api_pack.fail_payment(p_payment_id => ut_common_pack.g_payment_id
                                  ,p_reason     => v_reason);
@@ -337,29 +227,8 @@ create or replace package body ut_payment_api_pack is
   
   --Проверка отмены платежа с пустым параметром причины изменения статуса платежа завершается ошибкой
   procedure cancel_payment_with_empty_reason_should_fail is
-    v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
-    v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
-    v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
-    v_payment_detail   t_payment_detail_array     := t_payment_detail_array(t_payment_detail(ut_common_pack.c_payment_detail_client_software_id,
-                                                                                             ut_common_pack.c_payment_detail_default_client_software),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_client_IP_id, 
-                                                                                             ut_common_pack.get_random_client_IP()),
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_note_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_payment_note),                      
-                                                                            t_payment_detail(ut_common_pack.c_payment_detail_payment_is_checked_frod_id,                      
-                                                                                             ut_common_pack.c_payment_detail_default_is_checked_frod));                       
-                                                                           
     v_reason           payment.status_change_reason%type := null;
   begin
-    
-    ut_common_pack.g_payment_id := payment_api_pack.create_payment(p_from_client_id => v_from_client_id
-                                                   ,p_to_client_id   => v_to_client_id
-                                                   ,p_summa          => v_summa
-                                                   ,p_currency_id    => v_currency_id
-                                                   ,p_create_dtime   => v_create_dtime
-                                                   ,p_payment_detail => v_payment_detail);
                                                      
     payment_api_pack.cancel_payment(p_payment_id => ut_common_pack.g_payment_id
                                    ,p_reason     => v_reason);
@@ -381,10 +250,8 @@ create or replace package body ut_payment_api_pack is
   procedure direct_payment_delete_should_fail is
   begin
     
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
-    
     delete from payment p 
-    where p.payment_id = ut_common_pack.g_payment_id;
+    where p.payment_id = ut_common_pack.c_non_existing_payment_id;
 
   end direct_payment_delete_should_fail;
   
@@ -393,12 +260,10 @@ create or replace package body ut_payment_api_pack is
     v_from_client_id   client.client_id%type      := ut_common_pack.create_default_client();
     v_to_client_id     client.client_id%type      := ut_common_pack.create_default_client();
     v_summa            payment.summa%type         := ut_common_pack.get_random_payment_summa();
-    v_currency_id      currency.currency_id%type  := ut_common_pack.c_payment_currency_id_rub;
-    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime;
+    v_currency_id      currency.currency_id%type  := ut_common_pack.get_random_currency_id();
+    v_create_dtime     timestamp                  := ut_common_pack.get_random_payment_create_dtime();
 
   begin
-    
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
     
     insert into payment(payment_id
                        ,create_dtime
@@ -407,7 +272,7 @@ create or replace package body ut_payment_api_pack is
                        ,from_client_id
                        ,to_client_id
                        )
-    values (ut_common_pack.g_payment_id,v_create_dtime,v_summa,v_currency_id,v_from_client_id,v_to_client_id);
+    values (ut_common_pack.c_non_existing_payment_id,v_create_dtime,v_summa,v_currency_id,v_from_client_id,v_to_client_id);
 
   end direct_payment_insert_should_fail;
   
@@ -417,11 +282,9 @@ create or replace package body ut_payment_api_pack is
 
   begin
     
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
-    
     update payment p
        set p.summa = v_summa
-     where p.payment_id = ut_common_pack.g_payment_id;
+     where p.payment_id = ut_common_pack.c_non_existing_payment_id;
 
   end direct_payment_update_should_fail;
 
@@ -429,10 +292,8 @@ create or replace package body ut_payment_api_pack is
   procedure block_non_exiting_payment_should_fail is
     v_payment_reason  payment.status_change_reason%type := dbms_random.string('a', 100);
   begin    
-  
-    ut_common_pack.g_payment_id := ut_common_pack.c_non_existing_payment_id;
     
-    payment_api_pack.fail_payment(ut_common_pack.g_payment_id
+    payment_api_pack.fail_payment(ut_common_pack.c_non_existing_payment_id
                                  ,v_payment_reason);
 
   end block_non_exiting_payment_should_fail;
